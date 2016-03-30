@@ -111,11 +111,14 @@ func (m *Mongo) FindAll(collectionName string, query bson.M, selected bson.M) ([
 
 // CRUD METHOD
 // This method insert a new document into the collection
-func (m *Mongo) Insert(collectionName string, document interface{}) (bool, error) {
-	if err := m.Collections[collectionName].Insert(document); err != nil {
-		return false, err
+func (m *Mongo) Insert(collectionName string, document interface{}) (bson.ObjectId, error) {
+	id := bson.NewObjectId()
+	doc := document.(map[string]interface{})
+	doc["id"] = id
+	if err := m.Collections[collectionName].Insert(doc); err != nil {
+		return "", err
 	}
-	return true, nil
+	return id, nil
 }
 
 // CRUD METHOD
