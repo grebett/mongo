@@ -114,7 +114,7 @@ func (m *Mongo) FindAll(collectionName string, query bson.M, selected bson.M) ([
 func (m *Mongo) Insert(collectionName string, document interface{}) (bson.ObjectId, error) {
 	id := bson.NewObjectId()
 	doc := document.(map[string]interface{})
-	doc["id"] = id
+	doc["_id"] = id
 	if err := m.Collections[collectionName].Insert(doc); err != nil {
 		return "", err
 	}
@@ -122,12 +122,29 @@ func (m *Mongo) Insert(collectionName string, document interface{}) (bson.Object
 }
 
 // CRUD METHOD
-// This method insert a new document into the collection
+// This method update a document from the collection
 // update data must be a map[string](map[string]interface{})
 // first property is the $operator (such as $set or $inc)
 func (m *Mongo) Update(collectionName string, _id bson.ObjectId, update interface{}) (bool, error) {
 	if err := m.Collections[collectionName].Update(bson.M{"_id": _id}, update); err != nil { // could be UpdateId
 		return false, err
+	}
+	return true, nil
+}
+
+// CRUD METHOD
+// This method update a document from the collection
+// update data must be a map[string](map[string]interface{})
+// first property is the $operator (such as $set or $inc)
+// update is said complex because the query field is not a simple ObjectId
+func (m *Mongo) ComplexUpdate(collectionName string, queryField bson.M, update interface{}) (bool, error) {
+	if err := m.Collections[collectionName].Update(queryField, update); err != nil {
+		// we ignore not found errors, as it might be the expected behavior (?)
+		if err.Error() == "not found" {
+			return true, nil
+		} else {
+			return false, err
+		}
 	}
 	return true, nil
 }
