@@ -126,7 +126,7 @@ func (m *Mongo) Insert(collectionName string, document interface{}) (bson.Object
 // update data must be a map[string](map[string]interface{})
 // first property is the $operator (such as $set or $inc)
 func (m *Mongo) Update(collectionName string, _id bson.ObjectId, update interface{}) (bool, error) {
-	if err := m.Collections[collectionName].Update(bson.M{"_id": _id}, update); err != nil { // could be UpdateId
+	if _, err := m.Collections[collectionName].UpdateAll(bson.M{"_id": _id}, update); err != nil { // could be UpdateId
 		return false, err
 	}
 	return true, nil
@@ -138,7 +138,7 @@ func (m *Mongo) Update(collectionName string, _id bson.ObjectId, update interfac
 // first property is the $operator (such as $set or $inc)
 // update is said complex because the query field is not a simple ObjectId
 func (m *Mongo) ComplexUpdate(collectionName string, queryField bson.M, update interface{}) (bool, error) {
-	if err := m.Collections[collectionName].Update(queryField, update); err != nil {
+	if _, err := m.Collections[collectionName].UpdateAll(queryField, update); err != nil {
 		// we ignore not found errors, as it might be the expected behavior (?)
 		if err.Error() == "not found" {
 			return true, nil
